@@ -40,9 +40,8 @@ function GridDots() {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const EASE    = [0.25, 0.46, 0.45, 0.94] as const
-const LAYOUT  = { duration: 0.26, ease: EASE }
-const FADE    = { duration: 0.18, ease: EASE }
+const EASE = [0.25, 0.46, 0.45, 0.94] as const
+const FADE = { duration: 0.2, ease: EASE }
 
 // ─── ViewToggleButton ─────────────────────────────────────────────────────────
 
@@ -56,8 +55,6 @@ export function ViewToggleButton({ state, onClick }: ViewToggleButtonProps) {
 
   return (
     <motion.button
-      layout
-      transition={{ layout: LAYOUT }}
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
       onClick={onClick}
@@ -73,18 +70,14 @@ export function ViewToggleButton({ state, onClick }: ViewToggleButtonProps) {
         padding: 0,
         outline: 'none',
         fontFamily: font,
-        // Prevent content from jumping during layout animation
         whiteSpace: 'nowrap',
+        // Clip crossfades / icon scale so nothing paints past the rounded border.
+        // (Parent `layout` used a scale transform for width, which made the flip look like it spilled out.)
+        overflow: 'hidden',
       }}
     >
       {/* ── Icon segment ─────────────────────────────────────────────────── */}
-      {/*
-        layout="position" keeps the icon pinned to the left edge of the button.
-        Without it, Framer would also try to animate the icon's x-position as
-        the button expands, causing it to drift.
-      */}
-      <motion.div
-        layout="position"
+      <div
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -93,28 +86,27 @@ export function ViewToggleButton({ state, onClick }: ViewToggleButtonProps) {
           flexShrink: 0,
         }}
       >
-        {/* Icon crossfade — both rendered simultaneously so there's no gap */}
-        <div style={{ position: 'relative', width: 13, height: 13 }}>
+        {/* Icon crossfade — opacity only so nothing grows past the clip rect */}
+        <div style={{ position: 'relative', width: 13, height: 13, overflow: 'hidden' }}>
           <motion.div
             style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            animate={{ opacity: expanded ? 0 : 1, scale: expanded ? 0.6 : 1 }}
+            animate={{ opacity: expanded ? 0 : 1 }}
             transition={FADE}
           >
             <FlowDots />
           </motion.div>
           <motion.div
             style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            animate={{ opacity: expanded ? 1 : 0, scale: expanded ? 1 : 0.6 }}
+            animate={{ opacity: expanded ? 1 : 0 }}
             transition={FADE}
           >
             <GridDots />
           </motion.div>
         </div>
-      </motion.div>
+      </div>
 
       {/* ── Divider ──────────────────────────────────────────────────────── */}
-      <motion.div
-        layout="position"
+      <div
         style={{
           width: 1,
           alignSelf: 'stretch',
@@ -127,13 +119,10 @@ export function ViewToggleButton({ state, onClick }: ViewToggleButtonProps) {
 
       {/* ── Label segment ────────────────────────────────────────────────── */}
       {/*
-        This is the core of the smooth expansion. We render an invisible sizer
-        span that always shows the CURRENT target label. Framer's layout engine
-        sees the button grow/shrink in the DOM and animates it via transform,
-        so the expansion feels physically correct — no hardcoded pixel widths.
-
-        Two visible motion spans sit absolutely on top of the sizer and
-        crossfade simultaneously (no AnimatePresence gap / collapse).
+        Invisible sizer span sets width from the active label string. Width
+        updates with layout (no Framer `layout` on the button — that used a
+        scale transform and made the toggle look like it spilled past the border).
+        Two spans crossfade on top (opacity only).
       */}
       <div
         style={{
@@ -175,10 +164,7 @@ export function ViewToggleButton({ state, onClick }: ViewToggleButtonProps) {
             whiteSpace: 'nowrap',
             color: '#5b21b6',
           }}
-          animate={{
-            opacity: expanded ? 0 : 1,
-            x: expanded ? -6 : 0,
-          }}
+          animate={{ opacity: expanded ? 0 : 1 }}
           transition={FADE}
         >
           flow
@@ -200,10 +186,7 @@ export function ViewToggleButton({ state, onClick }: ViewToggleButtonProps) {
             whiteSpace: 'nowrap',
             color: '#5b21b6',
           }}
-          animate={{
-            opacity: expanded ? 1 : 0,
-            x: expanded ? 0 : 6,
-          }}
+          animate={{ opacity: expanded ? 1 : 0 }}
           transition={FADE}
         >
           grid view
