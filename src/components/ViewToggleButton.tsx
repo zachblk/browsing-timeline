@@ -63,7 +63,7 @@ export function ViewToggleButton({ state, onClick }: ViewToggleButtonProps) {
         display: 'inline-flex',
         alignItems: 'center',
         border: '1.5px solid #c4b5fd',
-        borderRadius: 12,
+        borderRadius: 0,
         background: '#ffffff',
         color: '#5b21b6',
         cursor: 'pointer',
